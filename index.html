@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>خوارزمية عزوز — Paper Trading</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Tajawal:wght@300;400;700;900&display=swap');
+:root {
+  --bg:#07080c; --s1:#0d0f15; --s2:#111520; --border:#181d2a;
+  --bull:#00d97e; --bear:#ff4057; --warn:#f5a623;
+  --accent:#6c4ff6; --text:#dde3f0; --muted:#3a4259; --muted2:#60718a;
+  --imx:#e84142; --gala:#c549ff;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+.top{background:var(--s1);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+.top h1{font-size:18px;font-weight:900;} .top h1 span{color:var(--accent);}
+.top p{font-size:10px;color:var(--muted2);font-family:'IBM Plex Mono',monospace;margin-top:2px;}
+
+.btn{border:none;padding:9px 20px;border-radius:6px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:opacity .2s;}
+.btn:hover{opacity:.85;} .btn:disabled{opacity:.3;cursor:not-allowed;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-check{background:var(--bull);color:#000;}
+.btn-danger{background:var(--bear);color:#fff;}
+.btn-warn{background:var(--warn);color:#000;}
+
+.prog{padding:8px 20px;background:var(--s1);border-bottom:1px solid var(--border);display:none;}
+.pb{background:var(--border);border-radius:3px;height:4px;overflow:hidden;}
+.pf{height:100%;background:var(--accent);border-radius:3px;transition:width .3s;width:0%;}
+.pt{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted2);margin-top:4px;}
+
+.signal-section{padding:20px;}
+
+.big-signal{text-align:center;padding:24px;border-radius:12px;margin-bottom:16px;}
+.big-signal .bs-icon{font-size:60px;margin-bottom:10px;}
+.big-signal .bs-text{font-size:24px;font-weight:900;}
+.big-signal .bs-sub{font-size:13px;color:var(--muted2);margin-top:6px;}
+.big-signal.go{background:rgba(0,217,126,.08);border:2px solid rgba(0,217,126,.3);}
+.big-signal.nogo{background:rgba(74,85,104,.1);border:1px solid var(--border);}
+
+.cond-grid{display:flex;flex-direction:column;gap:8px;margin-bottom:16px;}
+.cond-row{display:flex;align-items:center;justify-content:space-between;background:var(--s2);border-radius:8px;padding:10px 14px;border:1px solid var(--border);}
+.cond-row .cr-label{font-size:13px;}
+.cond-row .cr-value{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:700;}
+.cond-pass{border-color:rgba(0,217,126,.25);background:rgba(0,217,126,.04);}
+.cond-fail{border-color:rgba(255,64,87,.2);background:rgba(255,64,87,.03);}
+
+.trade-entry{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-bottom:16px;}
+.trade-entry h3{font-size:14px;font-weight:700;margin-bottom:14px;color:var(--accent);}
+.entry-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.entry-card{background:var(--s2);border-radius:8px;padding:12px;}
+.entry-card .ec-label{font-size:10px;color:var(--muted2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px;}
+.entry-card .ec-val{font-size:18px;font-weight:900;font-family:'IBM Plex Mono',monospace;}
+.result-btns{display:flex;gap:8px;flex-wrap:wrap;}
+
+.stats-section{padding:0 20px 20px;}
+.sec-title{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted2);font-weight:700;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+
+.capital-display{background:linear-gradient(135deg,rgba(0,217,126,.08),rgba(108,79,246,.05));border:1px solid rgba(0,217,126,.2);border-radius:12px;padding:18px;text-align:center;margin-bottom:16px;}
+.capital-display .cdl{font-size:11px;color:var(--muted2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;}
+.capital-display .cdv{font-size:36px;font-weight:900;font-family:'IBM Plex Mono',monospace;}
+.capital-display .cdp{font-size:14px;font-weight:700;margin-top:4px;}
+
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;}
+.stat-card{background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;}
+.stat-card .sl{font-size:10px;color:var(--muted2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px;}
+.stat-card .sv{font-size:22px;font-weight:900;font-family:'IBM Plex Mono',monospace;}
+.stat-card .ss{font-size:10px;color:var(--muted2);margin-top:3px;}
+
+.chart-box{background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:16px;}
+.chart-box h4{font-size:10px;color:var(--muted2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px;font-weight:700;}
+
+.tbl-wrap{overflow-x:auto;max-height:400px;overflow-y:auto;}
+table{width:100%;border-collapse:collapse;}
+thead tr{background:var(--s1);position:sticky;top:0;z-index:2;}
+thead th{padding:8px 12px;text-align:right;color:var(--muted2);font-size:10px;font-weight:700;text-transform:uppercase;border-bottom:2px solid var(--border);white-space:nowrap;}
+tbody tr{border-bottom:1px solid var(--border);}
+tbody tr:hover{background:rgba(255,255,255,.02);}
+tbody td{padding:8px 12px;white-space:nowrap;font-size:11px;}
+.mono{font-family:'IBM Plex Mono',monospace;}
+.badge{display:inline-block;padding:2px 8px;border-radius:3px;font-size:10px;font-weight:700;}
+.b-win{background:rgba(0,217,126,.12);color:var(--bull);}
+.b-loss{background:rgba(255,64,87,.12);color:var(--bear);}
+.b-skip{background:rgba(74,85,104,.2);color:var(--muted2);}
+
+.divider{height:1px;background:var(--border);margin:0 20px 20px;}
+
+/* System reminder */
+.reminder{background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:16px;font-size:12px;line-height:1.7;}
+.reminder h4{font-size:12px;font-weight:700;color:var(--accent);margin-bottom:8px;}
+.reminder .r-row{display:flex;gap:8px;align-items:flex-start;margin-bottom:4px;}
+.reminder .r-time{font-family:'IBM Plex Mono',monospace;font-weight:700;color:var(--warn);min-width:100px;}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div>
+    <h1>خوارزمية <span>عزوز</span> — Paper Trading</h1>
+    <p id="todayLabel">جاري التحميل...</p>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;">
+    <button class="btn btn-check" id="checkBtn" onclick="checkToday()">🔍 فحص اليوم</button>
+    <button class="btn btn-danger" onclick="resetAll()" style="font-size:11px;padding:6px 12px">🗑 مسح</button>
+  </div>
+</div>
+
+<div class="prog" id="prog">
+  <div class="pb"><div class="pf" id="pf"></div></div>
+  <div class="pt" id="pt"></div>
+</div>
+
+<div class="signal-section">
+  <!-- Reminder -->
+  <div class="reminder">
+    <h4>⏰ الروتين اليومي — خوارزمية عزوز</h4>
+    <div class="r-row"><span class="r-time">11:00 ص</span><span>تحقق: هل آسيا أغلقت هابطة؟</span></div>
+    <div class="r-row"><span class="r-time">8:00 م</span><span>تحقق: هل لندن أغلقت صاعدة؟ هل BTC عزوز؟</span></div>
+    <div class="r-row"><span class="r-time">5:00 م ⭐</span><span>ادخل الصفقة إذا تحققت الشروط | $500K GALA + $500K IMX</span></div>
+    <div class="r-row"><span class="r-time">1:00 ص</span><span>أغلق الصفقة وسجّل النتيجة هنا</span></div>
+  </div>
+
+  <div id="signalArea">
+    <div class="big-signal nogo">
+      <div class="bs-icon">🕐</div>
+      <div class="bs-text">اضغط "فحص اليوم"</div>
+      <div class="bs-sub">الساعة 5:00 مساءً بتوقيت السعودية</div>
+    </div>
+  </div>
+
+  <div id="tradeEntry" style="display:none"></div>
+</div>
+
+<div class="divider"></div>
+
+<div class="stats-section">
+  <div class="sec-title">إحصائيات Paper Trading</div>
+  <div class="capital-display" id="capitalDisplay">
+    <div class="cdl">رأس المال الافتراضي</div>
+    <div class="cdv" style="color:var(--bull)">$1,000,000</div>
+    <div class="cdp" style="color:var(--muted2)">لم تبدأ بعد</div>
+  </div>
+  <div class="stats-grid" id="statsGrid">
+    <div class="stat-card"><div class="sl">أيام سُجّلت</div><div class="sv" style="color:var(--accent)">0</div></div>
+    <div class="stat-card"><div class="sl">إشارات</div><div class="sv" style="color:var(--bull)">0</div></div>
+    <div class="stat-card"><div class="sl">دقة الفوز</div><div class="sv" style="color:var(--warn)">—</div></div>
+    <div class="stat-card"><div class="sl">متوسط يومي</div><div class="sv" style="color:var(--muted2)">—</div></div>
+  </div>
+  <div class="chart-box">
+    <h4>منحنى رأس المال</h4>
+    <canvas id="capitalChart" height="120"></canvas>
+  </div>
+  <div class="sec-title">سجل الصفقات</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr>
+        <th>#</th><th>التاريخ</th><th>اليوم</th>
+        <th>GALA</th><th>IMX</th><th>BTC</th>
+        <th>نتيجة GALA</th><th>نتيجة IMX</th>
+        <th>ربح اليوم</th><th>الرصيد</th>
+      </tr></thead>
+      <tbody id="journalBody">
+        <tr><td colspan="10" style="text-align:center;color:var(--muted2);padding:30px">لا توجد سجلات بعد</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const INITIAL = 1000000;
+const DAY_AR = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+const MONTH_AR = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+
+const fmt$ = n => { const s=n>=0?'+':'-'; const a=Math.abs(n); return s+'$'+(a>=1000000?(a/1e6).toFixed(3)+'M':a>=1000?(a/1000).toFixed(1)+'K':a.toFixed(0)); };
+const fmtUSD = n => '$'+Math.round(n).toLocaleString('en-US');
+
+// Storage
+const loadJ = () => { try{ return JSON.parse(localStorage.getItem('az_j')||'[]'); }catch(e){ return []; } };
+const saveJ = j => localStorage.setItem('az_j',JSON.stringify(j));
+const loadC = () => parseFloat(localStorage.getItem('az_c')||INITIAL);
+const saveC = c => localStorage.setItem('az_c',c.toString());
+
+// Today
+const todayUTC = new Date().toISOString().slice(0,10);
+const now = new Date();
+const saudiNow = new Date(now.getTime()+3*3600000);
+document.getElementById('todayLabel').textContent =
+  `${DAY_AR[now.getUTCDay()]} ${now.getUTCDate()} ${MONTH_AR[now.getUTCMonth()]} ${now.getUTCFullYear()} | ${saudiNow.toISOString().slice(11,16)} توقيت السعودية`;
+
+function getS(c,h0,h1){
+  const sc=c.filter(x=>x.hour>=h0&&x.hour<h1);
+  if(!sc.length) return null;
+  return{open:sc[0].open,close:sc[sc.length-1].close,high:Math.max(...sc.map(x=>x.high)),low:Math.min(...sc.map(x=>x.low))};
+}
+
+async function fetchD(sym){
+  const r=await fetch(`https://api.binance.com/api/v3/klines?symbol=${sym}&interval=1h&startTime=${Date.now()-2*86400000}&limit=72`);
+  if(!r.ok) throw new Error('فشل');
+  const data=await r.json();
+  const byDay={};
+  for(const k of data){
+    const d=new Date(k[0]); const key=d.toISOString().slice(0,10);
+    if(!byDay[key]) byDay[key]=[];
+    byDay[key].push({hour:d.getUTCHours(),open:+k[1],high:+k[2],low:+k[3],close:+k[4]});
+  }
+  return byDay[todayUTC]||[];
+}
+
+let TD = {};
+
+async function checkToday(){
+  const btn=document.getElementById('checkBtn'); btn.disabled=true;
+  const pg=document.getElementById('prog'),pf=document.getElementById('pf'),pt=document.getElementById('pt');
+  pg.style.display='block';
+  try{
+    pt.textContent='فحص BTC...'; pf.style.width='25%';
+    const btcCs=await fetchD('BTCUSDT');
+    const btcA=getS(btcCs,0,8), btcL=getS(btcCs,8,17);
+    const btcAzzoz=!!(btcA&&btcL&&btcA.close<btcA.open&&btcL.close>btcL.open);
+
+    pt.textContent='فحص GALA...'; pf.style.width='55%';
+    const galaCs=await fetchD('GALAUSDT');
+    const galaA=getS(galaCs,0,8), galaL=getS(galaCs,8,17);
+    const galaAzzoz=!!(galaA&&galaL&&galaA.close<galaA.open&&galaL.close>galaL.open);
+    const galaE=galaCs.find(c=>c.hour===14);
+
+    pt.textContent='فحص IMX...'; pf.style.width='85%';
+    const imxCs=await fetchD('IMXUSDT');
+    const imxA=getS(imxCs,0,8), imxL=getS(imxCs,8,17);
+    const imxAzzoz=!!(imxA&&imxL&&imxA.close<imxA.open&&imxL.close>imxL.open);
+    const imxE=imxCs.find(c=>c.hour===14);
+
+    pf.style.width='100%'; pt.textContent='✅ اكتمل';
+    TD={btcAzzoz,galaAzzoz,imxAzzoz,galaE,imxE,galaA,galaL,imxA,imxL,btcA,btcL};
+    renderSignal();
+  }catch(e){ pt.textContent='❌ '+e.message; }
+  btn.disabled=false;
+}
+
+function pct(o,c){ return o&&c?((c-o)/o*100).toFixed(2)+'%':'—'; }
+
+function renderSignal(){
+  const allGo=TD.btcAzzoz&&TD.galaAzzoz&&TD.imxAzzoz;
+  const conds=[
+    {label:'آسيا GALA هابطة', pass:TD.galaAzzoz!==undefined?TD.galaA&&TD.galaA.close<TD.galaA.open:null, val:pct(TD.galaA?.open,TD.galaA?.close)},
+    {label:'لندن GALA صاعدة', pass:TD.galaL&&TD.galaL.close>TD.galaL.open, val:pct(TD.galaL?.open,TD.galaL?.close)},
+    {label:'آسيا IMX هابطة',  pass:TD.imxA&&TD.imxA.close<TD.imxA.open,  val:pct(TD.imxA?.open,TD.imxA?.close)},
+    {label:'لندن IMX صاعدة',  pass:TD.imxL&&TD.imxL.close>TD.imxL.open,  val:pct(TD.imxL?.open,TD.imxL?.close)},
+    {label:'BTC عزوز ✅',      pass:TD.btcAzzoz, val:pct(TD.btcL?.open,TD.btcL?.close)},
+  ];
+
+  const condsHtml=conds.map(c=>`
+    <div class="cond-row ${c.pass===true?'cond-pass':c.pass===false?'cond-fail':''}">
+      <span class="cr-label">${c.label}</span>
+      <div style="display:flex;gap:10px;align-items:center">
+        <span class="cr-value" style="color:${c.pass?'var(--bull)':'var(--bear)'}">${c.val}</span>
+        <span style="font-size:16px">${c.pass===true?'✅':'❌'}</span>
+      </div>
+    </div>`).join('');
+
+  const bigHtml=allGo?`
+    <div class="big-signal go">
+      <div class="bs-icon">🚀</div>
+      <div class="bs-text" style="color:var(--bull)">إشارة اليوم — ادخل!</div>
+      <div class="bs-sub">الساعة 5:00 مساءً (14:00 UTC) | أغلق 1:00 صباحاً</div>
+    </div>`:
+    `<div class="big-signal nogo">
+      <div class="bs-icon">⏸️</div>
+      <div class="bs-text">لا إشارة اليوم</div>
+      <div class="bs-sub">لم تتحقق جميع الشروط</div>
+    </div>`;
+
+  document.getElementById('signalArea').innerHTML=bigHtml+`<div class="cond-grid">${condsHtml}</div>`;
+
+  const capital=loadC();
+  const alloc=capital*0.5;
+  const gP=TD.galaE?.open||0, iP=TD.imxE?.open||0;
+
+  if(allGo){
+    document.getElementById('tradeEntry').style.display='block';
+    document.getElementById('tradeEntry').innerHTML=`
+      <div class="trade-entry">
+        <h3>📝 سجّل النتيجة بعد إغلاق NY (1:00 صباحاً)</h3>
+        <div class="entry-grid">
+          <div class="entry-card">
+            <div class="ec-label" style="color:var(--gala)">GALA — ${fmtUSD(alloc)}</div>
+            <div class="ec-val" style="color:var(--gala)">${gP>0?'$'+gP.toFixed(4):'انتظر 5 مساءً'}</div>
+          </div>
+          <div class="entry-card">
+            <div class="ec-label" style="color:var(--imx)">IMX — ${fmtUSD(alloc)}</div>
+            <div class="ec-val" style="color:var(--imx)">${iP>0?'$'+iP.toFixed(4):'انتظر 5 مساءً'}</div>
+          </div>
+        </div>
+        <div class="result-btns">
+          <button class="btn btn-check" onclick="record('win')">✅ ربحت</button>
+          <button class="btn btn-danger" onclick="record('loss')">❌ خسرت</button>
+          <button class="btn btn-warn" onclick="record('skip')">⏭ تجاوزت</button>
+        </div>
+      </div>`;
+  } else {
+    document.getElementById('tradeEntry').style.display='block';
+    document.getElementById('tradeEntry').innerHTML=`
+      <div class="trade-entry">
+        <button class="btn btn-primary" onclick="recordNoSig()">✅ سجّل اليوم (بدون إشارة)</button>
+      </div>`;
+  }
+}
+
+function record(res){
+  const j=loadJ();
+  if(j.find(x=>x.date===todayUTC)){ alert('هذا اليوم مسجّل مسبقاً!'); return; }
+  const capital=loadC(), alloc=capital*0.5;
+  let gR='—',iR='—',dayPnl=0;
+
+  if(res==='win'){
+    const gP=parseFloat(prompt('نسبة ربح GALA % (مثال: 2.1)',''))||0;
+    const iP=parseFloat(prompt('نسبة ربح IMX % (مثال: 1.8)',''))||0;
+    const gPnl=alloc*(gP/100), iPnl=alloc*(iP/100);
+    dayPnl=gPnl+iPnl;
+    gR=`+${gP}% (${fmt$(gPnl)})`; iR=`+${iP}% (${fmt$(iPnl)})`;
+  } else if(res==='loss'){
+    const gP=parseFloat(prompt('نسبة خسارة GALA % (بدون ناقص)',''))||0;
+    const iP=parseFloat(prompt('نسبة خسارة IMX % (بدون ناقص)',''))||0;
+    const gPnl=-alloc*(gP/100), iPnl=-alloc*(iP/100);
+    dayPnl=gPnl+iPnl;
+    gR=`-${gP}% (${fmt$(gPnl)})`; iR=`-${iP}% (${fmt$(iPnl)})`;
+  }
+
+  const newC=capital+dayPnl;
+  saveC(newC);
+  const d=new Date(todayUTC+'T12:00:00Z');
+  j.push({date:todayUTC,dayName:DAY_AR[d.getUTCDay()],hasSignal:res!=='skip',res,gR,iR,dayPnl,capBefore:capital,capAfter:newC,btcAzzoz:TD.btcAzzoz,galaAzzoz:TD.galaAzzoz,imxAzzoz:TD.imxAzzoz});
+  saveJ(j);
+  document.getElementById('tradeEntry').style.display='none';
+  renderStats();
+  alert(`✅ تم التسجيل\nرأس المال: ${fmtUSD(newC)}`);
+}
+
+function recordNoSig(){
+  const j=loadJ();
+  if(j.find(x=>x.date===todayUTC)){ alert('مسجّل مسبقاً!'); return; }
+  const c=loadC();
+  const d=new Date(todayUTC+'T12:00:00Z');
+  j.push({date:todayUTC,dayName:DAY_AR[d.getUTCDay()],hasSignal:false,res:'no_signal',gR:'—',iR:'—',dayPnl:0,capBefore:c,capAfter:c});
+  saveJ(j); document.getElementById('tradeEntry').style.display='none';
+  renderStats(); alert('✅ تم تسجيل اليوم');
+}
+
+function renderStats(){
+  const j=loadJ(), c=loadC(), profit=c-INITIAL, pct2=((c-INITIAL)/INITIAL*100);
+  document.getElementById('capitalDisplay').innerHTML=`
+    <div class="cdl">رأس المال الافتراضي</div>
+    <div class="cdv" style="color:${c>=INITIAL?'var(--bull)':'var(--bear)'}">${fmtUSD(c)}</div>
+    <div class="cdp" style="color:${profit>=0?'var(--bull)':'var(--bear)'}">${fmt$(profit)} (${profit>=0?'+':''}${pct2.toFixed(1)}%)</div>`;
+
+  const sigs=j.filter(x=>x.hasSignal&&x.res!=='skip');
+  const wins=sigs.filter(x=>x.res==='win');
+  const losses=sigs.filter(x=>x.res==='loss');
+  const wr=sigs.length?(wins.length/sigs.length*100).toFixed(1):0;
+
+  document.getElementById('statsGrid').innerHTML=`
+    <div class="stat-card"><div class="sl">أيام سُجّلت</div><div class="sv" style="color:var(--accent)">${j.length}</div></div>
+    <div class="stat-card"><div class="sl">إشارات</div><div class="sv" style="color:var(--bull)">${sigs.length}</div></div>
+    <div class="stat-card"><div class="sl">دقة الفوز</div><div class="sv" style="color:${parseFloat(wr)>=60?'var(--bull)':'var(--warn)'}">${wr?wr+'%':'—'}</div><div class="ss">${wins.length}✅ ${losses.length}❌</div></div>
+    <div class="stat-card"><div class="sl">متوسط/يوم</div><div class="sv" style="color:${sigs.length&&profit>=0?'var(--bull)':'var(--bear)'}; font-size:16px">${sigs.length?fmt$(profit/sigs.length):'—'}</div></div>`;
+
+  // Chart
+  const canvas=document.getElementById('capitalChart');
+  const W=canvas.offsetWidth||800; const H=120;
+  canvas.width=W*devicePixelRatio; canvas.height=H*devicePixelRatio;
+  const ctx=canvas.getContext('2d'); ctx.scale(devicePixelRatio,devicePixelRatio);
+  const pts=[INITIAL,...j.map(x=>x.capAfter)];
+  if(pts.length<2){ ctx.fillStyle='var(--muted2)'; ctx.font='12px Tajawal'; ctx.fillText('لا توجد بيانات',W/2-50,H/2); }
+  else{
+    const minV=Math.min(...pts)*0.99, maxV=Math.max(...pts)*1.01;
+    const toX=i=>i*(W/(pts.length-1));
+    const toY=v=>H-12-(v-minV)/(maxV-minV)*(H-24);
+    const color=pts[pts.length-1]>=INITIAL?'var(--bull)':'var(--bear)';
+    ctx.strokeStyle='rgba(255,255,255,.06)'; ctx.lineWidth=1; ctx.setLineDash([3,4]);
+    ctx.beginPath(); ctx.moveTo(0,toY(INITIAL)); ctx.lineTo(W,toY(INITIAL)); ctx.stroke();
+    ctx.setLineDash([]);
+    const grad=ctx.createLinearGradient(0,0,0,H);
+    grad.addColorStop(0,pts[pts.length-1]>=INITIAL?'rgba(0,217,126,.2)':'rgba(255,64,87,.2)');
+    grad.addColorStop(1,'rgba(0,0,0,.01)');
+    ctx.beginPath(); ctx.moveTo(toX(0),toY(pts[0]));
+    for(let i=1;i<pts.length;i++) ctx.lineTo(toX(i),toY(pts[i]));
+    ctx.lineTo(toX(pts.length-1),H); ctx.lineTo(0,H); ctx.closePath();
+    ctx.fillStyle=grad; ctx.fill();
+    ctx.beginPath(); ctx.moveTo(toX(0),toY(pts[0]));
+    for(let i=1;i<pts.length;i++) ctx.lineTo(toX(i),toY(pts[i]));
+    ctx.strokeStyle=color; ctx.lineWidth=2; ctx.stroke();
+  }
+
+  // Journal
+  const tbody=document.getElementById('journalBody');
+  if(!j.length){ tbody.innerHTML='<tr><td colspan="10" style="text-align:center;color:var(--muted2);padding:30px">لا توجد سجلات بعد</td></tr>'; return; }
+  tbody.innerHTML=[...j].reverse().map((x,i)=>{
+    const clr=x.dayPnl>=0?'var(--bull)':'var(--bear)';
+    const b=x.res==='win'?'<span class="badge b-win">✅ ربح</span>':x.res==='loss'?'<span class="badge b-loss">❌ خسارة</span>':'<span class="badge b-skip">—</span>';
+    return `<tr style="border-right:2px solid ${x.dayPnl>0?'var(--bull)':x.dayPnl<0?'var(--bear)':'var(--border)'}">
+      <td class="mono" style="color:var(--muted2)">${j.length-i}</td>
+      <td class="mono" style="font-size:10px">${x.date}</td>
+      <td>${x.dayName}</td>
+      <td>${x.galaAzzoz!==undefined?(x.galaAzzoz?'✅':'❌'):'—'}</td>
+      <td>${x.imxAzzoz!==undefined?(x.imxAzzoz?'✅':'❌'):'—'}</td>
+      <td>${x.btcAzzoz!==undefined?(x.btcAzzoz?'✅':'❌'):'—'}</td>
+      <td class="mono" style="font-size:10px;color:${x.res==='win'?'var(--bull)':'var(--bear)'}">${x.gR}</td>
+      <td class="mono" style="font-size:10px;color:${x.res==='win'?'var(--bull)':'var(--bear)'}">${x.iR}</td>
+      <td class="mono" style="color:${clr};font-weight:700">${x.dayPnl?fmt$(x.dayPnl):'—'}</td>
+      <td class="mono" style="font-weight:700">${fmtUSD(x.capAfter)}</td>
+    </tr>`;
+  }).join('');
+}
+
+function resetAll(){
+  if(!confirm('مسح كل السجلات؟')) return;
+  localStorage.removeItem('az_j'); localStorage.removeItem('az_c');
+  renderStats();
+  document.getElementById('signalArea').innerHTML=`<div class="big-signal nogo"><div class="bs-icon">🕐</div><div class="bs-text">اضغط "فحص اليوم"</div><div class="bs-sub">الساعة 5:00 مساءً بتوقيت السعودية</div></div>`;
+  document.getElementById('tradeEntry').style.display='none';
+}
+
+renderStats();
+window.addEventListener('resize',()=>renderStats());
+</script>
+</body>
+</html>
