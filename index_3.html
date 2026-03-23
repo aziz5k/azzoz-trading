@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>خوارزمية عزوز</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#07080c;color:#dde3f0;font-family:Tahoma,Arial,sans-serif;min-height:100vh;}
+.hd{background:#0d0f15;padding:14px 16px;border-bottom:1px solid #1a1d2e;}
+.hd h1{font-size:17px;font-weight:900;}.hd h1 span{color:#6c4ff6;}
+.hd p{font-size:11px;color:#60718a;margin-top:3px;}
+.sec{padding:14px 16px;border-bottom:1px solid #181d2a;}
+.cap{background:linear-gradient(135deg,rgba(0,217,126,.08),rgba(108,79,246,.05));border:1px solid rgba(0,217,126,.2);border-radius:12px;padding:16px;text-align:center;margin-bottom:12px;}
+.cap .cl{font-size:11px;color:#60718a;margin-bottom:6px;}
+.cap .cv{font-size:32px;font-weight:900;}
+.cap .cp{font-size:14px;font-weight:700;margin-top:4px;}
+.sr{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
+.sc{background:#0d0f15;border:1px solid #181d2a;border-radius:8px;padding:10px;text-align:center;}
+.sc .sl{font-size:10px;color:#60718a;margin-bottom:3px;}.sc .sv{font-size:18px;font-weight:900;}
+.rout{background:#111520;border:1px solid #181d2a;border-radius:10px;padding:12px 14px;margin-bottom:12px;}
+.rout h4{font-size:12px;font-weight:700;color:#6c4ff6;margin-bottom:10px;}
+.rr{display:flex;gap:10px;margin-bottom:6px;font-size:13px;}
+.rt{font-weight:700;color:#f5a623;min-width:70px;}
+.cbtn{width:100%;padding:14px;background:#00d97e;color:#000;border:none;border-radius:10px;font-size:16px;font-weight:900;cursor:pointer;margin-bottom:12px;}
+.cbtn:disabled{opacity:.4;}
+.prog{display:none;background:#0d0f15;padding:8px 16px;}
+.pb{background:#1a1d2e;border-radius:3px;height:4px;overflow:hidden;}
+.pf{height:100%;background:#6c4ff6;border-radius:3px;transition:width .3s;width:0%;}
+.pt{font-size:10px;color:#60718a;margin-top:4px;}
+.sigb{border-radius:12px;padding:16px;text-align:center;margin-bottom:12px;display:none;}
+.sig-y{background:rgba(0,217,126,.08);border:2px solid rgba(0,217,126,.3);}
+.sig-n{background:rgba(74,85,104,.1);border:1px solid #181d2a;}
+.sigb .si{font-size:40px;margin-bottom:6px;}
+.sigb .st{font-size:20px;font-weight:900;}
+.sigb .ss{font-size:12px;color:#60718a;margin-top:4px;}
+.conds{margin-bottom:12px;display:none;}
+.cond{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:8px;margin-bottom:6px;border:1px solid #181d2a;background:#111520;}
+.cpass{border-color:rgba(0,217,126,.3);background:rgba(0,217,126,.04);}
+.cfail{border-color:rgba(255,64,87,.25);background:rgba(255,64,87,.03);}
+.rsec{background:#0d0f15;border:1px solid #181d2a;border-radius:10px;padding:14px;margin-bottom:12px;display:none;}
+.rsec h3{font-size:14px;font-weight:700;color:#6c4ff6;margin-bottom:12px;}
+.ir{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+.ig label{font-size:11px;color:#60718a;display:block;margin-bottom:4px;}
+.ig input{width:100%;background:#111520;border:1px solid #181d2a;color:#dde3f0;padding:10px;border-radius:8px;font-size:16px;}
+.ig input:focus{outline:none;border-color:#6c4ff6;}
+.rbs{display:flex;gap:8px;}
+.rb{flex:1;padding:12px;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;}
+.rw{background:#00d97e;color:#000;}.rs{background:#3a4259;color:#dde3f0;}
+.stt{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#60718a;font-weight:700;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #181d2a;}
+.tw{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+thead th{padding:8px 10px;text-align:right;color:#60718a;font-size:10px;border-bottom:2px solid #181d2a;white-space:nowrap;background:#0d0f15;position:sticky;top:0;}
+tbody td{padding:8px 10px;border-bottom:1px solid #181d2a;white-space:nowrap;}
+.bw{background:rgba(0,217,126,.12);color:#00d97e;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:700;}
+.bl{background:rgba(255,64,87,.12);color:#ff4057;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:700;}
+.bs{background:rgba(74,85,104,.2);color:#60718a;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:700;}
+.em{text-align:center;padding:30px;color:#60718a;font-size:13px;}
+</style>
+</head>
+<body>
+
+<div class="hd">
+  <h1>خوارزمية <span>عزوز</span></h1>
+  <p id="dLabel">...</p>
+</div>
+
+<div class="prog" id="prog">
+  <div class="pb"><div class="pf" id="pf"></div></div>
+  <div class="pt" id="pt"></div>
+</div>
+
+<div class="sec">
+  <div class="cap">
+    <div class="cl">رأس المال الحالي</div>
+    <div class="cv" id="capV" style="color:#00d97e">$1,000,000</div>
+    <div class="cp" id="capP" style="color:#60718a">+$0 (0.0%)</div>
+  </div>
+  <div class="sr">
+    <div class="sc"><div class="sl">إشارات</div><div class="sv" id="stS" style="color:#6c4ff6">0</div></div>
+    <div class="sc"><div class="sl">فوز</div><div class="sv" id="stW" style="color:#00d97e">0</div></div>
+    <div class="sc"><div class="sl">خسارة</div><div class="sv" id="stL" style="color:#ff4057">0</div></div>
+  </div>
+  <div class="rout">
+    <h4>⏰ الروتين اليومي</h4>
+    <div class="rr"><span class="rt">11:00 ص</span><span>تحقق من إغلاق آسيا</span></div>
+    <div class="rr"><span class="rt">8:00 م ⭐</span><span>افحص اليوم — إذا خضراء ادخل فوراً على Binance</span></div>
+    <div class="rr"><span class="rt">1:00 ص</span><span>أغلق الصفقة وسجّل النتيجة هنا</span></div>
+  </div>
+  <button class="cbtn" id="cBtn" onclick="doCheck()">🔍 فحص اليوم</button>
+  <div class="sigb" id="sigB"><div class="si" id="sigI"></div><div class="st" id="sigT"></div><div class="ss" id="sigS"></div></div>
+  <div class="conds" id="condsB"></div>
+  <div class="rsec" id="rSec">
+    <h3>📝 سجّل نتيجة اليوم</h3>
+    <div class="ir">
+      <div class="ig"><label style="color:#c549ff">GALA %</label><input type="number" id="gP" placeholder="مثال: 2.5 أو -0.9" step="0.01"></div>
+      <div class="ig"><label style="color:#e84142">IMX %</label><input type="number" id="iP" placeholder="مثال: 1.8 أو -0.9" step="0.01"></div>
+    </div>
+    <div class="rbs">
+      <button class="rb rw" onclick="doRecord()">✅ حفظ النتيجة</button>
+      <button class="rb rs" onclick="doSkip()">⏭ تجاوز</button>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="stt">سجل الصفقات</div>
+  <div class="tw" id="tw"><div class="em">لا توجد سجلات بعد</div></div>
+  <div style="margin-top:12px;text-align:center">
+    <button onclick="doReset()" style="background:none;border:1px solid #3a4259;color:#60718a;padding:6px 16px;border-radius:6px;font-size:12px;cursor:pointer">🗑 مسح الكل</button>
+  </div>
+</div>
+
+<script>
+var KEY='azzoz_v4';
+function sv(d){try{localStorage.setItem(KEY,JSON.stringify(d));}catch(e){}}
+function ld(){try{var d=localStorage.getItem(KEY);return d?JSON.parse(d):null;}catch(e){return null;}}
+var ST=ld()||{cap:1000000,ini:1000000,trades:[]};
+var DAY=['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+var now=new Date();
+var sa=new Date(now.getTime()+3*3600000);
+var tod=now.toISOString().slice(0,10);
+document.getElementById('dLabel').textContent=DAY[now.getUTCDay()]+' | '+sa.toISOString().slice(11,16)+' توقيت السعودية';
+
+function fu(n){return '$'+Math.round(Math.abs(n)).toLocaleString('en-US');}
+function fp(n){var s=n>=0?'+':'-';var a=Math.abs(n);if(a>=1000000)return s+'$'+(a/1000000).toFixed(3)+'M';if(a>=1000)return s+'$'+(a/1000).toFixed(1)+'K';return s+'$'+a.toFixed(0);}
+function pp(p){return (p>=0?'+':'')+p.toFixed(2)+'%';}
+function gs(c,h0,h1){var sc=[];for(var i=0;i<c.length;i++){if(c[i].hour>=h0&&c[i].hour<h1)sc.push(c[i]);}if(!sc.length)return null;var hi=sc[0].high,lo=sc[0].low;for(var j=1;j<sc.length;j++){if(sc[j].high>hi)hi=sc[j].high;if(sc[j].low<lo)lo=sc[j].low;}return{open:sc[0].open,close:sc[sc.length-1].close,high:hi,low:lo};}
+
+function fc(sym,cb){
+  var url='https://api.binance.com/api/v3/klines?symbol='+sym+'&interval=1h&limit=48&startTime='+(Date.now()-2*86400000);
+  var xhr=new XMLHttpRequest();
+  xhr.timeout=15000;
+  xhr.open('GET',url,true);
+  xhr.onload=function(){
+    if(xhr.status===200){
+      try{
+        var raw=JSON.parse(xhr.responseText);
+        var bd={};
+        for(var i=0;i<raw.length;i++){
+          var d=new Date(+raw[i][0]);
+          var k=d.toISOString().slice(0,10);
+          if(!bd[k])bd[k]=[];
+          bd[k].push({hour:d.getUTCHours(),open:parseFloat(raw[i][1]),high:parseFloat(raw[i][2]),low:parseFloat(raw[i][3]),close:parseFloat(raw[i][4])});
+        }
+        cb(null,bd[tod]||[]);
+      }catch(e){cb('خطأ في البيانات',null);}
+    }else{cb('HTTP '+xhr.status,null);}
+  };
+  xhr.onerror=function(){cb('تعذر الاتصال بـ Binance',null);};
+  xhr.ontimeout=function(){cb('انتهت مهلة الاتصال',null);};
+  xhr.send();
+}
+
+var chk={};
+
+function doCheck(){
+  var btn=document.getElementById('cBtn');
+  var pg=document.getElementById('prog');
+  var pf=document.getElementById('pf');
+  var pt=document.getElementById('pt');
+  btn.disabled=true;
+  pg.style.display='block';
+  pt.textContent='فحص BTC...';pf.style.width='10%';
+
+  fc('BTCUSDT',function(e1,btcC){
+    if(e1){pt.textContent='❌ '+e1;btn.disabled=false;return;}
+    pt.textContent='فحص GALA...';pf.style.width='40%';
+
+    fc('GALAUSDT',function(e2,galC){
+      if(e2){pt.textContent='❌ '+e2;btn.disabled=false;return;}
+      pt.textContent='فحص IMX...';pf.style.width='70%';
+
+      fc('IMXUSDT',function(e3,imxC){
+        if(e3){pt.textContent='❌ '+e3;btn.disabled=false;return;}
+        pf.style.width='100%';pt.textContent='✅ اكتمل';
+
+        var btcA=gs(btcC,0,8),btcL=gs(btcC,8,17);
+        var galA=gs(galC,0,8),galL=gs(galC,8,17);
+        var imxA=gs(imxC,0,8),imxL=gs(imxC,8,17);
+
+        chk={
+          btcOk:!!(btcA&&btcL&&btcA.close<btcA.open&&btcL.close>btcL.open),
+          galOk:!!(galA&&galL&&galA.close<galA.open&&galL.close>galL.open),
+          imxOk:!!(imxA&&imxL&&imxA.close<imxA.open&&imxL.close>imxL.open),
+          btcA:btcA,btcL:btcL,galA:galA,galL:galL,imxA:imxA,imxL:imxL
+        };
+
+        renderSig();
+        btn.disabled=false;
+      });
+    });
+  });
+}
+
+function pr(o,c){if(!o||!c)return '⏳';return ((c-o)/o*100).toFixed(2)+'%';}
+
+function renderSig(){
+  var all=chk.btcOk&&chk.galOk&&chk.imxOk;
+  var sb=document.getElementById('sigB');
+  var cd=document.getElementById('condsB');
+  var rs=document.getElementById('rSec');
+  sb.style.display='block';cd.style.display='block';
+
+  if(all){
+    sb.className='sigb sig-y';
+    document.getElementById('sigI').textContent='🚀';
+    document.getElementById('sigT').textContent='إشارة اليوم — ادخل!';
+    document.getElementById('sigT').style.color='#00d97e';
+    document.getElementById('sigS').textContent='ادخل الآن على Binance | أغلق 1:00 صباحاً';
+    rs.style.display='block';
+  }else{
+    sb.className='sigb sig-n';
+    document.getElementById('sigI').textContent='⏸️';
+    document.getElementById('sigT').textContent='لا إشارة اليوم';
+    document.getElementById('sigT').style.color='#dde3f0';
+    document.getElementById('sigS').textContent='لم تتحقق جميع الشروط';
+    rs.style.display='none';
+  }
+
+  var items=[
+    {l:'آسيا GALA هابطة',ok:!!(chk.galA&&chk.galA.close<chk.galA.open),v:pr(chk.galA&&chk.galA.open,chk.galA&&chk.galA.close)},
+    {l:'لندن GALA صاعدة',ok:!!(chk.galL&&chk.galL.close>chk.galL.open),v:pr(chk.galL&&chk.galL.open,chk.galL&&chk.galL.close)},
+    {l:'آسيا IMX هابطة', ok:!!(chk.imxA&&chk.imxA.close<chk.imxA.open),v:pr(chk.imxA&&chk.imxA.open,chk.imxA&&chk.imxA.close)},
+    {l:'لندن IMX صاعدة', ok:!!(chk.imxL&&chk.imxL.close>chk.imxL.open),v:pr(chk.imxL&&chk.imxL.open,chk.imxL&&chk.imxL.close)},
+    {l:'BTC عزوز',        ok:chk.btcOk,v:pr(chk.btcL&&chk.btcL.open,chk.btcL&&chk.btcL.close)},
+  ];
+
+  cd.innerHTML=items.map(function(i){
+    return '<div class="cond '+(i.ok?'cpass':'cfail')+'"><span>'+i.l+'</span><span style="font-weight:700;color:'+(i.ok?'#00d97e':'#ff4057')+'">'+i.v+' '+(i.ok?'✅':'❌')+'</span></div>';
+  }).join('');
+}
+
+function doRecord(){
+  if(ST.trades.find(function(t){return t.date===tod;})){alert('هذا اليوم مسجّل!');return;}
+  var alloc=ST.cap*0.5;
+  var gp=parseFloat(document.getElementById('gP').value)||0;
+  var ip=parseFloat(document.getElementById('iP').value)||0;
+  var gpnl=alloc*(gp/100);
+  var ipnl=alloc*(ip/100);
+  var dpnl=gpnl+ipnl;
+  var cb=ST.cap;
+  ST.cap+=dpnl;
+  ST.trades.push({date:tod,day:DAY[new Date(tod+'T12:00:00Z').getUTCDay()],type:'trade',gp:gp,ip:ip,gpnl:gpnl,ipnl:ipnl,dpnl:dpnl,cb:cb,ca:ST.cap});
+  sv(ST);renderAll();
+  document.getElementById('rSec').style.display='none';
+  document.getElementById('gP').value='';document.getElementById('iP').value='';
+  alert('✅ تم الحفظ | '+fp(dpnl));
+}
+
+function doSkip(){
+  if(ST.trades.find(function(t){return t.date===tod;})){alert('هذا اليوم مسجّل!');return;}
+  ST.trades.push({date:tod,day:DAY[new Date(tod+'T12:00:00Z').getUTCDay()],type:'skip',gp:0,ip:0,gpnl:0,ipnl:0,dpnl:0,cb:ST.cap,ca:ST.cap});
+  sv(ST);renderAll();
+  document.getElementById('rSec').style.display='none';
+  alert('✅ تم تسجيل يوم بدون إشارة');
+}
+
+function doReset(){
+  if(!confirm('مسح كل البيانات؟'))return;
+  ST={cap:1000000,ini:1000000,trades:[]};sv(ST);renderAll();
+  document.getElementById('sigB').style.display='none';
+  document.getElementById('condsB').style.display='none';
+  document.getElementById('rSec').style.display='none';
+}
+
+function renderAll(){
+  var p=ST.cap-ST.ini;
+  var pct=(p/ST.ini)*100;
+  document.getElementById('capV').textContent=fu(ST.cap);
+  document.getElementById('capV').style.color=p>=0?'#00d97e':'#ff4057';
+  document.getElementById('capP').textContent=fp(p)+' ('+pp(pct)+')';
+  document.getElementById('capP').style.color=p>=0?'#00d97e':'#ff4057';
+  var trades=ST.trades.filter(function(t){return t.type==='trade';});
+  var wins=trades.filter(function(t){return t.dpnl>0;});
+  var losses=trades.filter(function(t){return t.dpnl<=0;});
+  document.getElementById('stS').textContent=trades.length;
+  document.getElementById('stW').textContent=wins.length;
+  document.getElementById('stL').textContent=losses.length;
+
+  if(!ST.trades.length){document.getElementById('tw').innerHTML='<div class="em">لا توجد سجلات بعد</div>';return;}
+  var h='<table><thead><tr><th>التاريخ</th><th>اليوم</th><th style="color:#c549ff">GALA</th><th style="color:#e84142">IMX</th><th>ربح اليوم</th><th>الرصيد</th></tr></thead><tbody>';
+  var tr=[].concat(ST.trades).reverse();
+  for(var i=0;i<tr.length;i++){
+    var t=tr[i];
+    var clr=t.dpnl>0?'#00d97e':t.dpnl<0?'#ff4057':'#60718a';
+    var badge=t.type==='skip'?'<span class="bs">تجاوز</span>':t.dpnl>0?'<span class="bw">ربح</span>':'<span class="bl">خسارة</span>';
+    h+='<tr><td style="font-size:10px">'+t.date+'</td><td>'+t.day+'</td>';
+    h+='<td style="color:'+(t.gp>=0?'#00d97e':'#ff4057')+'">'+(t.type==='skip'?'—':pp(t.gp))+'</td>';
+    h+='<td style="color:'+(t.ip>=0?'#00d97e':'#ff4057')+'">'+(t.type==='skip'?'—':pp(t.ip))+'</td>';
+    h+='<td style="color:'+clr+';font-weight:700">'+(t.type==='skip'?'—':fp(t.dpnl))+'</td>';
+    h+='<td style="font-size:11px">'+fu(t.ca)+'</td></tr>';
+  }
+  h+='</tbody></table>';
+  document.getElementById('tw').innerHTML=h;
+}
+
+renderAll();
+</script>
+</body>
+</html>
