@@ -287,10 +287,10 @@ function buildConds(btcA,btcL,coin1A,coin1L,coin1Name,coin2A,coin2L,coin2Name){
   html+='<div class="cond-group">';
   html+='<div class="cond-group-title">🟡 BTC — شرط التأكيد</div>';
   html+='<div class="cond '+(btcAOk?'cpass':'cfail')+'">';
-  html+='<span class="cl">آسيا BTC (00:00–08:00)</span>';
+  html+='<span class="cl">آسيا BTC (3ص–11ص)</span>';
   html+='<span class="cv" style="color:'+(btcAOk?'#00d97e':'#ff4057')+'">'+pr(btcA&&btcA.open,btcA&&btcA.close)+' — '+(btcAOk?'✅ هابطة':'❌ صاعدة')+'</span></div>';
   html+='<div class="cond '+(btcLOk?'cpass':'cfail')+'">';
-  html+='<span class="cl">لندن BTC (08:00–17:00)</span>';
+  html+='<span class="cl">لندن BTC (11ص–8م)</span>';
   html+='<span class="cv" style="color:'+(btcLOk?'#00d97e':'#ff4057')+'">'+pr(btcL&&btcL.open,btcL&&btcL.close)+' — '+(btcLOk?'✅ صاعدة':'❌ هابطة')+'</span></div>';
   html+='</div>';
 
@@ -298,10 +298,10 @@ function buildConds(btcA,btcL,coin1A,coin1L,coin1Name,coin2A,coin2L,coin2Name){
   html+='<div class="cond-group">';
   html+='<div class="cond-group-title" style="color:#c549ff">🟣 '+coin1Name+'</div>';
   html+='<div class="cond '+(c1AOk?'cpass':'cfail')+'">';
-  html+='<span class="cl">آسيا (00:00–08:00)</span>';
+  html+='<span class="cl">آسيا (3ص–11ص)</span>';
   html+='<span class="cv" style="color:'+(c1AOk?'#00d97e':'#ff4057')+'">'+pr(coin1A&&coin1A.open,coin1A&&coin1A.close)+' — '+(c1AOk?'✅ هابطة':'❌ صاعدة')+'</span></div>';
   html+='<div class="cond '+(c1LOk?'cpass':'cfail')+'">';
-  html+='<span class="cl">لندن (08:00–17:00)</span>';
+  html+='<span class="cl">لندن (11ص–8م)</span>';
   html+='<span class="cv" style="color:'+(c1LOk?'#00d97e':'#ff4057')+'">'+pr(coin1L&&coin1L.open,coin1L&&coin1L.close)+' — '+(c1LOk?'✅ صاعدة':'❌ هابطة')+'</span></div>';
   html+='</div>';
 
@@ -310,10 +310,10 @@ function buildConds(btcA,btcL,coin1A,coin1L,coin1Name,coin2A,coin2L,coin2Name){
     html+='<div class="cond-group">';
     html+='<div class="cond-group-title" style="color:#e84142">🔴 '+coin2Name+'</div>';
     html+='<div class="cond '+(c2AOk?'cpass':'cfail')+'">';
-    html+='<span class="cl">آسيا (00:00–08:00)</span>';
+    html+='<span class="cl">آسيا (3ص–11ص)</span>';
     html+='<span class="cv" style="color:'+(c2AOk?'#00d97e':'#ff4057')+'">'+pr(coin2A&&coin2A.open,coin2A&&coin2A.close)+' — '+(c2AOk?'✅ هابطة':'❌ صاعدة')+'</span></div>';
     html+='<div class="cond '+(c2LOk?'cpass':'cfail')+'">';
-    html+='<span class="cl">لندن (08:00–17:00)</span>';
+    html+='<span class="cl">لندن (11ص–8م)</span>';
     html+='<span class="cv" style="color:'+(c2LOk?'#00d97e':'#ff4057')+'">'+pr(coin2L&&coin2L.open,coin2L&&coin2L.close)+' — '+(c2LOk?'✅ صاعدة':'❌ هابطة')+'</span></div>';
     html+='</div>';
   }
@@ -442,7 +442,7 @@ function saveCheckLog(coins,allOk,btcOk,c1Ok,c2Ok){
     btcOk:btcOk,
     c1Ok:c1Ok,
     c2Ok:c2Ok,
-    time:new Date().toISOString().slice(11,16)+' UTC'
+    time:new Date(Date.now()+3*3600000).toISOString().slice(11,16)+' توقيت السعودية'
   };
   // Remove if already exists today for same coins
   ST.logs=ST.logs.filter(function(l){return !(l.date===tod&&l.type==='check'&&l.coins===coins);});
